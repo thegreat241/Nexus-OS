@@ -3,7 +3,8 @@ export enum AppMode {
   FINANCE = 'FINANCE',
   CALENDAR = 'CALENDAR',
   PROJECTS = 'PROJECTS',
-  CODE = 'CODE'
+  CODE = 'CODE',
+  SHARE = 'SHARE'
 }
 
 export enum ItemType {
