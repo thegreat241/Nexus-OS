@@ -71,7 +71,9 @@ import {
   RefreshCw,
   Eye,
   Hash,
-  HardDrive
+  HardDrive,
+  Cpu,
+  Terminal
 } from 'lucide-react';
 
 export const Icons = {
@@ -146,5 +148,7 @@ export const Icons = {
   RefreshCw,
   Eye,
   Hash,
-  HardDrive
+  HardDrive,
+  Cpu,
+  Terminal
 };

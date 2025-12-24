@@ -1016,7 +1016,7 @@ const CalendarPro: React.FC<{ items: AnyItem[], onUpdate: (item: AnyItem) => voi
     );
 };
 
-// --- MODULE: PROJECT HUB PRO ---
+// --- MODULE: PROJECT HUB PRO (Vibe-Coder Edition) ---
 const ProjectsPro: React.FC<{ items: AnyItem[], onUpdate: (item: AnyItem) => void, onDelete: (id: string) => void }> = ({ items, onUpdate, onDelete }) => {
     const [activeProject, setActiveProject] = useState<ProjectItem | null>(null);
     const [showNewProjectModal, setShowNewProjectModal] = useState(false);
@@ -1044,41 +1044,62 @@ const ProjectsPro: React.FC<{ items: AnyItem[], onUpdate: (item: AnyItem) => voi
             setTaskModal({ ...taskModal, open: false }); setTaskForm({ content: '', priority: 'MEDIUM' });
         }
     };
+    
+    const copyToClipboard = (text: string) => {
+        navigator.clipboard.writeText(text);
+        alert("Prompt copié !");
+    };
 
     const projects = items.filter(i => i.type === ItemType.PROJECT) as ProjectItem[];
 
     if (activeProject) {
         const pTasks = items.filter(i => i.type === ItemType.TASK && i.projectId === activeProject.id) as TaskItem[];
-        const columns = [{ id: 'TODO', title: 'À Faire', color: 'border-nexus-muted' }, { id: 'IN_PROGRESS', title: 'En Cours', color: 'border-blue-500' }, { id: 'DONE', title: 'Terminé', color: 'border-green-500' }];
+        // Re-mapping columns to Prompt Engineering Workflow
+        const columns = [
+            { id: 'TODO', title: 'Backlog Prompts', color: 'border-nexus-muted', icon: Icons.List }, 
+            { id: 'IN_PROGRESS', title: 'Processing / Coding', color: 'border-blue-500', icon: Icons.Cpu }, 
+            { id: 'DONE', title: 'Deployed / Live', color: 'border-green-500', icon: Icons.CheckSquare }
+        ];
 
         return (
             <div className="h-full flex flex-col bg-nexus-bg pb-20">
                 <div className="p-6 pb-2 sticky top-0 bg-nexus-bg/95 backdrop-blur z-20">
-                    <button onClick={() => setActiveProject(null)} className="flex items-center gap-2 text-nexus-muted hover:text-white mb-4 transition-colors"><Icons.ChevronLeft size={16}/> Retour aux projets</button>
+                    <button onClick={() => setActiveProject(null)} className="flex items-center gap-2 text-nexus-muted hover:text-white mb-4 transition-colors"><Icons.ChevronLeft size={16}/> Retour aux Stacks</button>
                     <div className="flex justify-between items-start">
-                        <div><h2 className="text-3xl font-bold text-white mb-1">{activeProject.name}</h2><p className="text-sm text-nexus-muted max-w-xs line-clamp-1">{activeProject.content}</p></div>
+                        <div><h2 className="text-3xl font-bold text-white mb-1">{activeProject.name}</h2><p className="text-sm text-nexus-muted max-w-xs line-clamp-1 font-mono">{activeProject.content}</p></div>
                     </div>
                     <div className="grid grid-cols-3 gap-3 mt-6 mb-4">
-                        <div className="bg-white/5 rounded-xl p-3 border border-white/5"><span className="block text-xl font-bold text-white">{pTasks.filter(t => t.status === 'DONE').length}</span><span className="text-[10px] text-nexus-muted uppercase">Terminées</span></div>
-                        <div className="bg-white/5 rounded-xl p-3 border border-white/5"><span className="block text-xl font-bold text-nexus-primary">{pTasks.length}</span><span className="text-[10px] text-nexus-muted uppercase">Total Tâches</span></div>
-                        <div className="bg-white/5 rounded-xl p-3 border border-white/5"><span className="block text-xl font-bold text-red-400">{activeProject.deadline ? Math.ceil((activeProject.deadline - Date.now())/(1000*60*60*24)) : '-'}</span><span className="text-[10px] text-nexus-muted uppercase">Jours Rest.</span></div>
+                        <div className="bg-white/5 rounded-xl p-3 border border-white/5"><span className="block text-xl font-bold text-white">{pTasks.filter(t => t.status === 'DONE').length}</span><span className="text-[10px] text-nexus-muted uppercase">Deployed</span></div>
+                        <div className="bg-white/5 rounded-xl p-3 border border-white/5"><span className="block text-xl font-bold text-nexus-primary">{pTasks.length}</span><span className="text-[10px] text-nexus-muted uppercase">Iterations</span></div>
+                        <div className="bg-white/5 rounded-xl p-3 border border-white/5"><span className="block text-xl font-bold text-red-400">{activeProject.deadline ? Math.ceil((activeProject.deadline - Date.now())/(1000*60*60*24)) : '∞'}</span><span className="text-[10px] text-nexus-muted uppercase">Sprint Days</span></div>
                     </div>
                 </div>
 
                 <div className="flex-1 overflow-x-auto px-6 pb-6 flex gap-4 snap-x">
                     {columns.map(col => (
-                        <div key={col.id} className="min-w-[280px] w-[80%] flex flex-col snap-center">
-                            <div className={`border-t-2 ${col.color} pt-3 mb-4 flex justify-between`}><h3 className="font-bold text-white">{col.title}</h3><span className="text-xs text-nexus-muted bg-white/5 px-2 py-0.5 rounded">{pTasks.filter(t => t.status === col.id).length}</span></div>
+                        <div key={col.id} className="min-w-[300px] w-[85%] flex flex-col snap-center">
+                            <div className={`border-t-2 ${col.color} pt-3 mb-4 flex justify-between items-center`}>
+                                <h3 className="font-bold text-white flex items-center gap-2"><col.icon size={16}/> {col.title}</h3>
+                                <span className="text-xs text-nexus-muted bg-white/5 px-2 py-0.5 rounded font-mono">{pTasks.filter(t => t.status === col.id).length}</span>
+                            </div>
                             <div className="space-y-3">
-                                <button onClick={() => setTaskModal({ open: true, columnId: col.id, projectId: activeProject.id })} className="w-full py-3 border border-dashed border-white/20 rounded-xl text-nexus-muted hover:border-nexus-primary hover:text-nexus-primary transition-colors text-sm">+ Ajouter Tâche</button>
+                                <button onClick={() => setTaskModal({ open: true, columnId: col.id, projectId: activeProject.id })} className="w-full py-4 border border-dashed border-white/20 rounded-xl text-nexus-muted hover:border-nexus-primary hover:text-nexus-primary transition-colors text-sm font-mono">+ Nouveau Prompt</button>
                                 {pTasks.filter(t => t.status === col.id).map(task => (
                                     <GlassCard key={task.id} className="group cursor-grab active:cursor-grabbing hover:border-nexus-primary/50 relative">
-                                        <div className="flex justify-between items-start mb-2"><span className={`text-[10px] px-1.5 py-0.5 rounded border ${task.priority === 'HIGH' ? 'border-red-500/50 text-red-400 bg-red-500/10' : 'border-white/10 text-gray-400'}`}>{task.priority || 'NORMAL'}</span><button onClick={() => onDelete(task.id)} className="opacity-0 group-hover:opacity-100 text-red-500"><Icons.X size={14}/></button></div>
-                                        <p className="text-sm text-white font-medium mb-3">{task.content}</p>
+                                        <div className="flex justify-between items-start mb-2">
+                                            <span className={`text-[10px] px-1.5 py-0.5 rounded border ${task.priority === 'HIGH' ? 'border-red-500/50 text-red-400 bg-red-500/10' : 'border-white/10 text-gray-400'}`}>{task.priority || 'NORMAL'}</span>
+                                            <div className="flex gap-2">
+                                                <button onClick={() => copyToClipboard(task.content)} className="text-nexus-muted hover:text-white" title="Copier le Prompt"><Icons.Copy size={14}/></button>
+                                                <button onClick={() => onDelete(task.id)} className="opacity-0 group-hover:opacity-100 text-red-500"><Icons.X size={14}/></button>
+                                            </div>
+                                        </div>
+                                        <div className="bg-black/30 p-2 rounded-lg border border-white/5 mb-3">
+                                            <p className="text-xs text-green-400 font-mono leading-relaxed whitespace-pre-wrap">{task.content}</p>
+                                        </div>
                                         <div className="flex gap-1 mt-2 pt-2 border-t border-white/5">
-                                            {col.id !== 'TODO' && <button onClick={() => onUpdate({...task, status: 'TODO'})} className="flex-1 text-[10px] text-center bg-white/5 py-1 rounded hover:bg-white/10">À Faire</button>}
-                                            {col.id !== 'IN_PROGRESS' && <button onClick={() => onUpdate({...task, status: 'IN_PROGRESS'})} className="flex-1 text-[10px] text-center bg-white/5 py-1 rounded hover:bg-white/10">En Cours</button>}
-                                            {col.id !== 'DONE' && <button onClick={() => onUpdate({...task, status: 'DONE'})} className="flex-1 text-[10px] text-center bg-white/5 py-1 rounded hover:bg-white/10">Fini</button>}
+                                            {col.id !== 'TODO' && <button onClick={() => onUpdate({...task, status: 'TODO'})} className="flex-1 text-[10px] text-center bg-white/5 py-1 rounded hover:bg-white/10">Reviser</button>}
+                                            {col.id !== 'IN_PROGRESS' && <button onClick={() => onUpdate({...task, status: 'IN_PROGRESS'})} className="flex-1 text-[10px] text-center bg-white/5 py-1 rounded hover:bg-white/10">Coder</button>}
+                                            {col.id !== 'DONE' && <button onClick={() => onUpdate({...task, status: 'DONE'})} className="flex-1 text-[10px] text-center bg-white/5 py-1 rounded hover:bg-white/10">Deployer</button>}
                                         </div>
                                     </GlassCard>
                                 ))}
@@ -1088,12 +1109,29 @@ const ProjectsPro: React.FC<{ items: AnyItem[], onUpdate: (item: AnyItem) => voi
                 </div>
                 {taskModal.open && (
                     <div className="fixed inset-0 bg-black/80 z-[80] flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in">
-                        <div className="bg-nexus-card border border-white/10 w-full max-w-sm rounded-2xl p-6 shadow-2xl">
-                            <h3 className="text-white font-bold mb-4">Nouvelle Tâche</h3>
+                        <div className="bg-nexus-card border border-white/10 w-full max-w-lg rounded-2xl p-6 shadow-2xl">
+                            <h3 className="text-white font-bold mb-4 flex items-center gap-2"><Icons.Terminal size={20}/> Nouvelle Itération / Prompt</h3>
                             <form onSubmit={handleCreateTask} className="space-y-4">
-                                <input autoFocus placeholder="Description de la tâche..." value={taskForm.content} onChange={e => setTaskForm({...taskForm, content: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-nexus-primary"/>
-                                <div className="flex gap-2">{['LOW', 'MEDIUM', 'HIGH'].map(p => (<button key={p} type="button" onClick={() => setTaskForm({...taskForm, priority: p})} className={`flex-1 py-2 rounded-lg text-xs font-bold border ${taskForm.priority === p ? 'bg-nexus-primary border-nexus-primary text-white' : 'bg-transparent border-white/10 text-nexus-muted'}`}>{p}</button>))}</div>
-                                <div className="flex gap-2 pt-2"><NeonButton type="submit" className="flex-1">Ajouter</NeonButton><NeonButton type="button" variant="secondary" onClick={() => setTaskModal({...taskModal, open: false})}>Annuler</NeonButton></div>
+                                <div className="bg-black/30 rounded-xl border border-white/10 p-1">
+                                    <textarea 
+                                        autoFocus 
+                                        placeholder="Décrivez la fonctionnalité, le bug fix, ou collez votre prompt système ici..." 
+                                        value={taskForm.content} 
+                                        onChange={e => setTaskForm({...taskForm, content: e.target.value})} 
+                                        className="w-full bg-transparent p-3 text-green-400 font-mono text-sm outline-none h-40 resize-none"
+                                    />
+                                </div>
+                                <div className="flex gap-2">
+                                    {['LOW', 'MEDIUM', 'HIGH'].map(p => (
+                                        <button key={p} type="button" onClick={() => setTaskForm({...taskForm, priority: p})} className={`flex-1 py-2 rounded-lg text-xs font-bold border ${taskForm.priority === p ? 'bg-nexus-primary border-nexus-primary text-white' : 'bg-transparent border-white/10 text-nexus-muted'}`}>
+                                            {p === 'HIGH' ? 'CRITICAL' : p === 'MEDIUM' ? 'FEATURE' : 'TWEAK'}
+                                        </button>
+                                    ))}
+                                </div>
+                                <div className="flex gap-2 pt-2">
+                                    <NeonButton type="submit" className="flex-1"><Icons.Play size={16}/> Ajouter à la queue</NeonButton>
+                                    <NeonButton type="button" variant="secondary" onClick={() => setTaskModal({...taskModal, open: false})}>Annuler</NeonButton>
+                                </div>
                             </form>
                         </div>
                     </div>
@@ -1104,7 +1142,7 @@ const ProjectsPro: React.FC<{ items: AnyItem[], onUpdate: (item: AnyItem) => voi
 
     return (
         <div className="p-6 pb-28 space-y-6 animate-in fade-in">
-             <SectionHeader title="Projets" subtitle="Gestion & Roadmap" icon={Icons.Layout} rightAction={<NeonButton size="sm" onClick={() => setShowNewProjectModal(true)}><Icons.Plus size={18}/> Nouveau</NeonButton>}/>
+             <SectionHeader title="Dev Lab" subtitle="Prompt Engineering & Roadmap" icon={Icons.Cpu} rightAction={<NeonButton size="sm" onClick={() => setShowNewProjectModal(true)}><Icons.Plus size={18}/> Nouvelle Stack</NeonButton>}/>
             <div className="grid grid-cols-1 gap-5">
                 {projects.length === 0 && (<div className="text-center py-10 border border-dashed border-white/10 rounded-3xl"><Icons.Layout className="mx-auto text-nexus-muted mb-3" size={40}/><p className="text-nexus-muted">Aucun projet actif.</p></div>)}
                 {projects.map(p => {
@@ -1115,7 +1153,21 @@ const ProjectsPro: React.FC<{ items: AnyItem[], onUpdate: (item: AnyItem) => voi
                     return (
                         <GlassCard key={p.id} onClick={() => setActiveProject(p)} className="cursor-pointer group hover:bg-white/10 relative overflow-hidden">
                              <div className="absolute left-0 top-0 bottom-0 bg-nexus-primary/5 transition-all duration-1000" style={{ width: `${percent}%` }}></div>
-                             <div className="relative z-10"><div className="flex justify-between items-start mb-3"><h3 className="text-xl font-bold text-white group-hover:text-nexus-primary transition-colors">{p.name}</h3><Icons.ArrowRight size={20} className="text-nexus-muted group-hover:translate-x-1 transition-transform"/></div><p className="text-sm text-nexus-muted mb-4 line-clamp-2">{p.content}</p><div className="w-full bg-white/10 h-1 rounded-full overflow-hidden mt-2"><div className="bg-nexus-primary h-full" style={{ width: `${percent}%` }}></div></div></div>
+                             <div className="relative z-10">
+                                <div className="flex justify-between items-start mb-3">
+                                    <h3 className="text-xl font-bold text-white group-hover:text-nexus-primary transition-colors">{p.name}</h3>
+                                    <Icons.ArrowRight size={20} className="text-nexus-muted group-hover:translate-x-1 transition-transform"/>
+                                </div>
+                                <p className="text-sm text-nexus-muted mb-4 line-clamp-2 font-mono border-l-2 border-white/10 pl-2">{p.content}</p>
+                                <div className="flex justify-between items-end">
+                                    <div className="flex gap-2">
+                                        <span className="text-[10px] bg-white/10 px-2 py-1 rounded text-white flex items-center gap-1"><Icons.Terminal size={10}/> {total} Prompts</span>
+                                        <span className="text-[10px] bg-green-500/10 px-2 py-1 rounded text-green-400 flex items-center gap-1"><Icons.CheckSquare size={10}/> {done} Done</span>
+                                    </div>
+                                    <div className="text-xs font-bold text-nexus-primary">{percent}%</div>
+                                </div>
+                                <div className="w-full bg-white/10 h-1 rounded-full overflow-hidden mt-2"><div className="bg-nexus-primary h-full" style={{ width: `${percent}%` }}></div></div>
+                             </div>
                         </GlassCard>
                     );
                 })}
@@ -1123,12 +1175,12 @@ const ProjectsPro: React.FC<{ items: AnyItem[], onUpdate: (item: AnyItem) => voi
             {showNewProjectModal && (
                 <div className="fixed inset-0 bg-black/80 z-[70] flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in">
                     <div className="bg-nexus-card border border-white/10 w-full max-w-sm rounded-2xl p-6 shadow-2xl">
-                        <h3 className="text-white font-bold mb-4">Nouveau Projet</h3>
+                        <h3 className="text-white font-bold mb-4">Nouvelle Dev Stack</h3>
                         <div className="space-y-4">
-                            <input autoFocus placeholder="Nom du projet" value={newProjectForm.name} onChange={e => setNewProjectForm({...newProjectForm, name: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-nexus-primary"/>
-                            <textarea placeholder="Description courte" value={newProjectForm.desc} onChange={e => setNewProjectForm({...newProjectForm, desc: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-nexus-primary h-20"/>
-                            <div className="flex flex-col gap-1"><label className="text-xs text-nexus-muted">Deadline</label><input type="date" value={newProjectForm.deadline} onChange={e => setNewProjectForm({...newProjectForm, deadline: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white"/></div>
-                            <div className="flex gap-2"><NeonButton className="flex-1" onClick={handleCreateProject}>Créer</NeonButton><NeonButton variant="secondary" onClick={() => setShowNewProjectModal(false)}>Annuler</NeonButton></div>
+                            <input autoFocus placeholder="Nom de l'App / Module" value={newProjectForm.name} onChange={e => setNewProjectForm({...newProjectForm, name: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-nexus-primary"/>
+                            <textarea placeholder="System Prompt / Objectif Global" value={newProjectForm.desc} onChange={e => setNewProjectForm({...newProjectForm, desc: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-nexus-primary h-20 font-mono text-xs"/>
+                            <div className="flex flex-col gap-1"><label className="text-xs text-nexus-muted">Target Launch Date</label><input type="date" value={newProjectForm.deadline} onChange={e => setNewProjectForm({...newProjectForm, deadline: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white"/></div>
+                            <div className="flex gap-2"><NeonButton className="flex-1" onClick={handleCreateProject}>Initialiser</NeonButton><NeonButton variant="secondary" onClick={() => setShowNewProjectModal(false)}>Annuler</NeonButton></div>
                         </div>
                     </div>
                 </div>
